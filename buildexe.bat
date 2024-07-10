@@ -1,0 +1,1 @@
+nuitka --windows-console-mode=disable main.py
